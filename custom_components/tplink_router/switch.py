@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .coordinator import TPLinkRouterCoordinator
-from tplinkrouterc6u import VPN, Connection
+from tplinkrouterc6u import VPN, Connection, TPLinkSG108EClient
 from . import vpn_client
 
 
@@ -204,6 +204,12 @@ WAN_SWITCH_TYPES = (
 )
 
 
+def _status_switch_types(router) -> tuple[TPLinkRouterStatusSwitchConfig, ...]:
+    if isinstance(router, TPLinkSG108EClient):
+        return ()
+    return STATUS_SWITCH_TYPES
+
+
 async def async_setup_entry(
         hass: HomeAssistant,
         entry: ConfigEntry,
@@ -213,7 +219,7 @@ async def async_setup_entry(
 
     switches = []
 
-    for switch in STATUS_SWITCH_TYPES:
+    for switch in _status_switch_types(coordinator.router):
         switches.append(TPLinkRouterSwitch(coordinator, switch))
 
     # Scan entity has has different turn_on/off logic from the rest of the switches
